@@ -1,7 +1,12 @@
 use glam::Vec3;
 use rand::prelude::StdRng;
 use rand::{Rng, SeedableRng};
-use crate::{CHILD_OFFSET, DEFAULT_MAT, DEFAULT_SVO_MAX_DEPTH};
+
+pub const SVO_VERSION: u8 = 2;
+
+pub const DEFAULT_MAT: u32 = 1;
+pub const DEFAULT_SVO_MAX_DEPTH: u8 = 8;
+pub const CHILD_OFFSET: u32 = 24;
 
 pub trait Octant {
     fn set_child(&self, child: u32) -> u32;
