@@ -1,5 +1,5 @@
 # vss-rs
-A rust library for reading and writing voxel data and Sparse Voxel Octrees (SVO) ported from [C++](https://github.com/cooukiez/vss). It also supports converting voxel data to svo but only cpu-sided.
+A rust library for reading and writing voxel data and Sparse Voxel Octrees (SVO) ported from [the C++ library vss](https://github.com/cooukiez/vss). It also supports converting voxel data to svo but only cpu-sided.
 ## Bvox
 ### Header pattern
 ```c
