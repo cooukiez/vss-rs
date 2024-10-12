@@ -1,5 +1,7 @@
 use glam::UVec3;
 
+pub const DEFAULT_VOX_MAT: u8 = 1;
+
 pub const fn pos_to_index(x: u32, y: u32, z: u32, res: u32) -> u32 {
     x + y * res + z * res * res
 }

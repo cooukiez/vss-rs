@@ -2,11 +2,10 @@ use glam::Vec3;
 use rand::prelude::StdRng;
 use rand::{Rng, SeedableRng};
 
-pub const SVO_VERSION: u8 = 2;
-
-pub const DEFAULT_MAT: u32 = 1;
-pub const DEFAULT_SVO_MAX_DEPTH: u8 = 8;
 pub const CHILD_OFFSET: u32 = 24;
+pub const DEFAULT_SVO_MAX_DEPTH: u8 = 8;
+pub const DEFAULT_SVO_MAT: u32 = 1;
+
 
 pub trait Octant {
     fn set_child(&self, child: u32) -> u32;
@@ -77,7 +76,7 @@ impl SVO {
         }
     }
 
-    pub fn from_grid(vox_grid: &[u8], grid_res: u32, depth: u8) {
+    pub fn from_grid(vox_grid: &[u8], grid_res: u32, depth: u8) -> SVO {
         let mut svo = Self {
             nodes: Vec::from([0]),
             root_span: grid_res as f32,
@@ -87,6 +86,8 @@ impl SVO {
         for (i, &mat) in vox_grid.iter().enumerate() {
             if mat > 0 { svo.insert_node_morton(i as u32, mat as u32).unwrap(); }
         }
+
+        svo
     }
 
     pub fn insert_node_morton(&mut self, morton_index: u32, mat: u32) -> Result<(), String> {
@@ -152,7 +153,7 @@ impl SVO {
                 }
             }
         } else {
-            self.nodes[cur_index] = self.nodes[cur_index].set_first_child_index(DEFAULT_MAT);
+            self.nodes[cur_index] = self.nodes[cur_index].set_first_child_index(DEFAULT_SVO_MAT);
         }
     }
 
@@ -178,7 +179,7 @@ impl SVO {
             cd += 1;
         }
 
-        self.nodes[node_idx] = self.nodes[node_idx].set_first_child_index(DEFAULT_MAT);
+        self.nodes[node_idx] = self.nodes[node_idx].set_first_child_index(DEFAULT_SVO_MAT);
 
         node_idx
     }

@@ -15,10 +15,10 @@ pub const DEFAULT_CHUNK_SIZE: u32 = DEFAULT_CHUNK_RES * DEFAULT_CHUNK_RES * DEFA
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct BvoxHeader {
     version: u8,
-    chunk_res: u32,
-    chunk_size: u32,
-    run_length_encoded: bool,
-    morton_encoded: bool,
+    pub chunk_res: u32,
+    pub chunk_size: u32,
+    pub run_length_encoded: bool,
+    pub morton_encoded: bool,
 }
 
 impl BvoxHeader {

@@ -13,7 +13,7 @@ pub const NODE_SIZE: usize = size_of::<u32>();
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct BsvoHeader {
-    pub version: u8,
+    version: u8,
     pub depth: u8,
     pub root_span: f32,
     pub run_length_encoded: bool,
@@ -83,7 +83,7 @@ pub fn get_bsvo_header(filename: &str) -> io::Result<BsvoHeader> {
     Ok(header)
 }
 
-pub fn read_bsvo(filename: &str) -> io::Result<(SVO, BsvoHeader)> {
+pub fn read_bsvo(filename: &str) -> io::Result<(BsvoHeader, SVO)> {
     let header = get_bsvo_header(filename)?;
 
     // open file again to continue reading
@@ -104,7 +104,7 @@ pub fn read_bsvo(filename: &str) -> io::Result<(SVO, BsvoHeader)> {
     let node_count = buffer.len() / NODE_SIZE;
 
     let nodes_slice = unsafe { from_raw_parts(buffer.as_ptr() as *const u32, node_count) };
-    let mut nodes = nodes_slice.to_vec();
+    let nodes = nodes_slice.to_vec();
 
     let svo = SVO {
         nodes,
@@ -112,5 +112,5 @@ pub fn read_bsvo(filename: &str) -> io::Result<(SVO, BsvoHeader)> {
         depth: header.depth,
     };
 
-    Ok((svo, header))
+    Ok((header, svo))
 }
