@@ -162,6 +162,7 @@ impl SVO {
         }
     }
 
+    #[allow(dead_code)]
     pub fn insert_node_at_depth(&mut self, pos: Vec3, depth: u8) -> usize {
         let mut cs = self.root_span; // span
         let mut cd = 0; // depth
@@ -189,6 +190,8 @@ impl SVO {
         node_idx
     }
 
+    // Todo: implement tests
+    #[allow(dead_code)]
     pub fn insert_node(&mut self, pos: Vec3) -> usize {
         self.insert_node_at_depth(pos, self.depth)
     }
