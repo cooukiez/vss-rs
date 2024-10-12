@@ -2,6 +2,11 @@
 name = "vss-rs"
 version = "0.1.0"
 edition = "2021"
+description = "Voxel storage system for rust ported from cpp."
+homepage = "https://github.com/cooukiez/vss-rs"
+repository = "https://github.com/cooukiez/vss-rs"
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 glam = "0.29.0"
