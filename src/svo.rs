@@ -6,7 +6,7 @@ pub const CHILD_OFFSET: u32 = 24;
 pub const DEFAULT_SVO_MAX_DEPTH: u8 = 8;
 pub const DEFAULT_SVO_MAT: u32 = 1;
 
-
+#[allow(dead_code)]
 pub trait Octant {
     fn set_child(&self, child: u32) -> u32;
     fn check_child(&self, child: u32) -> bool;
@@ -16,6 +16,7 @@ pub trait Octant {
     fn child_mask(&self) -> u8;
     fn set_child_mask(&self, mask: u8) -> u32;
     fn child_count(&self) -> u32;
+    fn is_leaf(&self) -> bool;
 }
 
 impl Octant for u32 {
@@ -24,11 +25,11 @@ impl Octant for u32 {
     }
 
     fn check_child(&self, child: u32) -> bool {
-        self & (1u32 << (child + CHILD_OFFSET)) > 0
+        self & (1u32 << (child + CHILD_OFFSET)) != 0
     }
 
     fn has_children(&self) -> bool {
-        self & 0b11111111_00000000_00000000_00000000 > 0
+        self & 0b11111111_00000000_00000000_00000000 != 0
     }
 
     fn set_first_child_index(&self, index: u32) -> u32 {
@@ -52,9 +53,13 @@ impl Octant for u32 {
     fn child_count(&self) -> u32 {
         (self >> CHILD_OFFSET).count_ones()
     }
+
+    fn is_leaf(&self) -> bool {
+        (self & 0b11111111_00000000_00000000_00000000) == 0 && (self & 0b00000000_11111111_11111111_11111111) != 0
+    }
 }
 
-
+#[allow(dead_code)]
 pub fn encode_node(child_mask: u8, first_child_index: u32) -> u32 {
     ((child_mask as u32) << CHILD_OFFSET)
         | (first_child_index & 0b00000000_11111111_11111111_11111111)
@@ -188,8 +193,8 @@ impl SVO {
         self.insert_node_at_depth(pos, self.depth)
     }
 
-    pub fn count_notes(&self) -> u32 {
-        self.nodes.iter().map(|&n| n > 1).count() as u32
+    pub fn count_leaf_nodes(&self) -> u32 {
+        self.nodes.iter().filter(|&n| n.is_leaf()).count() as u32
     }
 }
 

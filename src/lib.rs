@@ -121,6 +121,26 @@ pub fn test_bsvo_read_write() -> Result<(), Box<dyn Error>> {
         assert_eq!(svo.nodes[i], read_svo.nodes[i]);
     }
 
+    let svo_node_count = svo.count_leaf_nodes();
+    let chunk_node_count = chunk.iter().filter(|&&v| v > 0).count() as u32;
+    assert_eq!(svo_node_count, chunk_node_count);
+
+    Ok(())
+}
+
+pub fn test_gen_random_svo() -> Result<(), Box<dyn Error>> {
+    let mut svo = SVO::new(SVO_MAX_DEPTH);
+    svo.gen_random_svo(0);
+
+    let bsvo_header = BsvoHeader::new(svo.depth, svo.root_span, false);
+    write_bsvo("output/random_svo.bsvo", &svo, bsvo_header)?;
+
+    let (_, read_svo) = read_bsvo("output/random_svo.bsvo")?;
+
+    for i in 0..svo.nodes.len() {
+        assert_eq!(svo.nodes[i], read_svo.nodes[i]);
+    }
+
     Ok(())
 }
 
@@ -202,6 +222,11 @@ mod tests {
     #[test]
     fn test_append() {
         test_bvox_append().unwrap();
+    }
+
+    #[test]
+    fn test_random_svo() {
+        test_gen_random_svo().unwrap();
     }
 
     #[test]
