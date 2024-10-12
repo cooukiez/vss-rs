@@ -90,21 +90,17 @@ pub fn get_bsvo_header(filename: &str) -> io::Result<BsvoHeader> {
 pub fn read_bsvo(filename: &str) -> io::Result<(BsvoHeader, SVO)> {
     let header = get_bsvo_header(filename)?;
 
-    // open file again to continue reading
     let path = Path::new(filename);
     let mut reader = BufReader::new(File::open(path)?);
 
     // skip the already read header part
     reader.seek(SeekFrom::Start(size_of::<BsvoHeader>() as u64))?;
 
-    // read rest of file
     let mut buffer = Vec::new();
     reader.read_to_end(&mut buffer)?;
 
-    // check if buffer size contains correct data
     assert_eq!(buffer.len() % NODE_SIZE, 0);
 
-    // deserialize each node from binary
     let node_count = buffer.len() / NODE_SIZE;
 
     let nodes_slice = unsafe { slice::from_raw_parts(buffer.as_ptr().cast(), node_count) };

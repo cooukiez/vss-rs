@@ -36,9 +36,6 @@ impl Default for BvoxHeader {
     }
 }
 
-//
-// writing
-//
 pub fn write_empty_bvox(filename: &str, header: BvoxHeader) -> io::Result<()> {
     let mut header = header;
     header.version = BVOX_VERSION;
@@ -108,11 +105,9 @@ pub fn get_bvox_header(filename: &str) -> io::Result<BvoxHeader> {
 pub fn append_to_bvox(filename: &str, chunk: &[u8]) -> io::Result<()> {
     let header = get_bvox_header(filename)?;
 
-    // open file again to continue writing
     let path = Path::new(filename);
     let mut writer = BufWriter::new(OpenOptions::new().write(true).append(true).open(path)?);
 
-    // check chunk size
     if chunk.len() != header.chunk_size as usize {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "chunk is not the given size."));
     }
@@ -129,13 +124,9 @@ pub fn append_to_bvox(filename: &str, chunk: &[u8]) -> io::Result<()> {
     Ok(())
 }
 
-//
-// reading
-//
 pub fn read_bvox(filename: &str) -> io::Result<(BvoxHeader, Vec<Vec<u8>>)> {
     let header = get_bvox_header(filename)?;
 
-    // open file again to continue reading
     let path = Path::new(filename);
     let mut reader = BufReader::new(File::open(path)?);
 
@@ -145,10 +136,8 @@ pub fn read_bvox(filename: &str) -> io::Result<(BvoxHeader, Vec<Vec<u8>>)> {
     let mut chunk_data = Vec::new();
     let mut chunk = Vec::new();
 
-    // read byte by byte
     let mut byte = [0u8; 1];
     while reader.read(&mut byte)? != 0 {
-        // check if chunk ended
         if byte[0] == CHUNK_SEPARATOR {
             if header.run_length_encoded {
                 let decoded = run_length_decode(&chunk)?;
