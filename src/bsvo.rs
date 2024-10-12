@@ -32,6 +32,7 @@ impl Default for BsvoHeader {
     }
 }
 
+#[warn(dead_code)]
 pub fn write_empty_bsvo(filename: &str, header: BsvoHeader) -> io::Result<()> {
     let mut header = header;
     header.version = BSVO_VERSION;

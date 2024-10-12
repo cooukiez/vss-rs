@@ -1,5 +1,5 @@
-use crate::bsvo::{read_bsvo, write_bsvo, BsvoHeader};
-use crate::bvox::{read_bvox, write_bvox, BvoxHeader, DEFAULT_CHUNK_RES, DEFAULT_CHUNK_SIZE};
+use crate::bsvo::{read_bsvo, write_bsvo, write_empty_bsvo, BsvoHeader};
+use crate::bvox::{append_to_bvox, read_bvox, write_bvox, write_empty_bvox, BvoxHeader, DEFAULT_CHUNK_RES, DEFAULT_CHUNK_SIZE};
 use crate::svo::{DEFAULT_SVO_MAX_DEPTH, SVO};
 use crate::vox::{morton_decode_3d_grid, morton_encode_3d_grid, pos_to_index, DEFAULT_VOX_MAT};
 use rand::distributions::{Bernoulli, Distribution};
@@ -22,6 +22,16 @@ pub fn gen_rand_vox_grid(size: usize, probability_of_one: f64) -> Vec<u8> {
     (0..size).map(|_| dist.sample(&mut rng) as u8).collect()
 }
 
+pub fn test_empty_bsvo_and_bvox() -> Result<(), Box<dyn Error>> {
+    let bvox_header = BvoxHeader::default();
+    write_empty_bvox("output/empty.bvox", bvox_header)?;
+
+    let bsvo_header = BsvoHeader::default();
+    write_empty_bsvo("output/empty.bsvo", bsvo_header)?;
+
+    Ok(())
+}
+
 pub fn test_bvox_read_write() -> Result<(), Box<dyn Error>> {
     let chunk = gen_rand_vox_grid(CHUNK_SIZE as usize, 0.1);
 
@@ -31,9 +41,9 @@ pub fn test_bvox_read_write() -> Result<(), Box<dyn Error>> {
     let chunk_data = vec![morton_chunk.clone()];
 
     let header = BvoxHeader::new(CHUNK_RES, CHUNK_SIZE, true, true);
-    write_bvox("test_bvox_rw.bvox", &chunk_data, header)?;
+    write_bvox("output/test_bvox_rw.bvox", &chunk_data, header)?;
 
-    let (_, read_chunk_data) = read_bvox("test_bvox_rw.bvox")?;
+    let (_, read_chunk_data) = read_bvox("output/test_bvox_rw.bvox")?;
 
     let mut decoded_morton = vec![0; CHUNK_SIZE as usize];
     morton_decode_3d_grid(&read_chunk_data[0], CHUNK_RES, CHUNK_SIZE, &mut decoded_morton);
@@ -45,18 +55,40 @@ pub fn test_bvox_read_write() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn test_bvox_append() -> Result<(), Box<dyn Error>> {
+    let chunk = gen_rand_vox_grid(CHUNK_SIZE as usize, 0.1);
+
+    let mut morton_chunk = vec![0; CHUNK_SIZE as usize];
+    morton_encode_3d_grid(&chunk, CHUNK_RES, CHUNK_SIZE, &mut morton_chunk);
+
+    let header = BvoxHeader::new(CHUNK_RES, CHUNK_SIZE, true, true);
+    write_empty_bvox("output/test_bvox_append.bvox", header)?;
+    append_to_bvox("output/test_bvox_append.bvox", &morton_chunk)?;
+
+    let (_, read_chunk_data) = read_bvox("output/test_bvox_append.bvox")?;
+
+    let mut decoded_morton = vec![0; CHUNK_SIZE as usize];
+    morton_decode_3d_grid(&read_chunk_data[0], CHUNK_RES, CHUNK_SIZE, &mut decoded_morton);
+
+    for i in 0..CHUNK_SIZE {
+        assert_eq!(chunk[i as usize], decoded_morton[i as usize]);
+    }
+
+    Ok (())
+}
+
 pub fn test_normal_and_rle_read_write() -> Result<(), Box<dyn Error>> {
     let chunk = gen_rand_vox_grid(CHUNK_SIZE as usize, 0.1);
     let chunk_data = vec![chunk];
 
     let header_normal = BvoxHeader::new(CHUNK_RES, CHUNK_SIZE, false, false);
-    write_bvox("test_bvox_normal_rw.bvox", &chunk_data, header_normal)?;
+    write_bvox("output/test_bvox_compression_base.bvox", &chunk_data, header_normal)?;
 
     let header_rle = BvoxHeader::new(CHUNK_RES, CHUNK_SIZE, true, false);
-    write_bvox("test_bvox_rle_rw.bvox", &chunk_data, header_rle)?;
+    write_bvox("output/test_bvox_compression_rle.bvox", &chunk_data, header_rle)?;
 
-    let (_, read_normal) = read_bvox("test_bvox_normal_rw.bvox")?;
-    let (_, read_rle) = read_bvox("test_bvox_rle_rw.bvox")?;
+    let (_, read_normal) = read_bvox("output/test_bvox_compression_base.bvox")?;
+    let (_, read_rle) = read_bvox("output/test_bvox_compression_rle.bvox")?;
 
     for i in 0..CHUNK_SIZE {
         assert_eq!(read_normal[0][i as usize], read_rle[0][i as usize]);
@@ -74,16 +106,16 @@ pub fn test_bsvo_read_write() -> Result<(), Box<dyn Error>> {
     let chunk_data = vec![morton_chunk.clone()];
 
     let header = BvoxHeader::new(CHUNK_RES, CHUNK_SIZE, true, true);
-    write_bvox("test_bsvo_rw.bvox", &chunk_data, header)?;
+    write_bvox("output/test_bsvo_rw.bvox", &chunk_data, header)?;
 
-    let (_, read_chunk_data) = read_bvox("test_bsvo_rw.bvox")?;
+    let (_, read_chunk_data) = read_bvox("output/test_bsvo_rw.bvox")?;
 
     let svo = SVO::from_grid(&read_chunk_data[0], CHUNK_RES, SVO_MAX_DEPTH);
 
     let bsvo_header = BsvoHeader::new(svo.depth, svo.root_span, true);
-    write_bsvo("test_bsvo_rw.bsvo", &svo, bsvo_header)?;
+    write_bsvo("output/test_bsvo_rw.bsvo", &svo, bsvo_header)?;
 
-    let (_, read_svo) = read_bsvo("test_bsvo_rw.bsvo")?;
+    let (_, read_svo) = read_bsvo("output/test_bsvo_rw.bsvo")?;
 
     for i in 0..read_svo.nodes.len() {
         assert_eq!(svo.nodes[i], read_svo.nodes[i]);
@@ -111,14 +143,14 @@ pub fn cube_grid_and_svo() -> Result<(), Box<dyn Error>> {
     let chunk_data = vec![morton_chunk.clone()];
 
     let header = BvoxHeader::new(CHUNK_RES, CHUNK_SIZE, true, true);
-    write_bvox("cube.bvox", &chunk_data, header)?;
+    write_bvox("output/cube.bvox", &chunk_data, header)?;
 
-    let (_, read_chunk_data) = read_bvox("cube.bvox")?;
+    let (_, read_chunk_data) = read_bvox("output/cube.bvox")?;
 
     let svo = SVO::from_grid(&read_chunk_data[0], CHUNK_RES, SVO_MAX_DEPTH);
 
     let bsvo_header = BsvoHeader::new(svo.depth, svo.root_span, true);
-    write_bsvo("cube.bsvo", &svo, bsvo_header)?;
+    write_bsvo("output/cube.bsvo", &svo, bsvo_header)?;
 
     Ok (())
 }
@@ -146,14 +178,14 @@ pub fn tiny_grid_and_svo() -> Result<(), Box<dyn Error>> {
     let chunk_data = vec![morton_chunk.clone()];
 
     let header = BvoxHeader::new(chunk_res, chunk_size, true, true);
-    write_bvox("tiny_grid.bvox", &chunk_data, header)?;
+    write_bvox("output/tiny_grid.bvox", &chunk_data, header)?;
 
-    let (_, read_chunk_data) = read_bvox("tiny_grid.bvox")?;
+    let (_, read_chunk_data) = read_bvox("output/tiny_grid.bvox")?;
 
     let svo = SVO::from_grid(&read_chunk_data[0], chunk_res, depth);
 
     let bsvo_header = BsvoHeader::new(svo.depth, svo.root_span, true);
-    write_bsvo("tiny_svo.bsvo", &svo, bsvo_header)?;
+    write_bsvo("output/tiny_svo.bsvo", &svo, bsvo_header)?;
 
     Ok(())
 }
@@ -161,6 +193,16 @@ pub fn tiny_grid_and_svo() -> Result<(), Box<dyn Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_empty() {
+        test_empty_bsvo_and_bvox().unwrap();
+    }
+
+    #[test]
+    fn test_append() {
+        test_bvox_append().unwrap();
+    }
 
     #[test]
     fn test_bvox_rw() {
