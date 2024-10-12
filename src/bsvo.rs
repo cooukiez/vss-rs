@@ -1,11 +1,5 @@
-use std::{
-    fs::File,
-    io,
-    io::{BufReader, BufWriter, Read, Seek, SeekFrom, Write},
-    path::Path
-};
+use std::{fs::File, io, io::{BufReader, BufWriter, Read, Seek, SeekFrom, Write}, path::Path, ptr, slice};
 use serde_derive::{Deserialize, Serialize};
-use std::slice::from_raw_parts;
 use crate::svo::{DEFAULT_SVO_MAX_DEPTH, SVO};
 
 pub const BSVO_VERSION: u8 = 3;
@@ -18,6 +12,8 @@ pub struct BsvoHeader {
     pub root_span: f32,
     pub run_length_encoded: bool,
 }
+
+const BSVO_HEADER_SIZE: usize = size_of::<BsvoHeader>();
 
 impl BsvoHeader {
     pub fn new(depth: u8, root_span: f32, run_length_encoded: bool) -> BsvoHeader {
@@ -43,7 +39,9 @@ pub fn write_empty_bsvo(filename: &str, header: BsvoHeader) -> io::Result<()> {
     let path = Path::new(filename);
     let mut writer = BufWriter::new(File::create(path)?);
 
-    writer.write_all(&serde_cbor::to_vec(&header).unwrap())?;
+    let header_bytes = unsafe { slice::from_raw_parts(&header as *const _ as *const u8, BSVO_HEADER_SIZE) };
+    writer.write_all(header_bytes)?;
+
     writer.flush()?;
 
     Ok(())
@@ -56,10 +54,12 @@ pub fn write_bsvo(filename: &str, svo: &SVO, header: BsvoHeader) -> io::Result<(
     let path = Path::new(filename);
     let mut writer = BufWriter::new(File::create(path)?);
 
-    writer.write_all(&serde_cbor::to_vec(&header).unwrap())?;
+    let header_bytes = unsafe { slice::from_raw_parts(&header as *const _ as *const u8, BSVO_HEADER_SIZE) };
+    writer.write_all(header_bytes)?;
 
-    for node in &svo.nodes {
-        writer.write_all(&serde_cbor::to_vec(&node).unwrap())?;
+    for &node in &svo.nodes {
+        let bytes = node.to_le_bytes();
+        writer.write_all(&bytes)?;
     }
 
     writer.flush()?;
@@ -70,14 +70,16 @@ pub fn get_bsvo_header(filename: &str) -> io::Result<BsvoHeader> {
     let path = Path::new(filename);
     let mut reader = BufReader::new(File::open(path)?);
 
-    let header: BsvoHeader = serde_cbor::from_reader(&mut reader).unwrap();
+    let mut buffer = [0u8; BSVO_HEADER_SIZE];
+    reader.read_exact(&mut buffer)?;
+    let header: BsvoHeader = unsafe { ptr::read(buffer.as_ptr().cast()) };
 
     if header.version > BSVO_VERSION {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "newer bsvo reader version required for file"));
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "newer bsvo reader version required for file."));
     }
 
     if header.version < BSVO_VERSION {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "file version is outdated, use older bsvo reader"));
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "file version is outdated, use older bsvo reader."));
     }
 
     Ok(header)
@@ -103,7 +105,7 @@ pub fn read_bsvo(filename: &str) -> io::Result<(BsvoHeader, SVO)> {
     // deserialize each node from binary
     let node_count = buffer.len() / NODE_SIZE;
 
-    let nodes_slice = unsafe { from_raw_parts(buffer.as_ptr() as *const u32, node_count) };
+    let nodes_slice = unsafe { slice::from_raw_parts(buffer.as_ptr().cast(), node_count) };
     let nodes = nodes_slice.to_vec();
 
     let svo = SVO {

@@ -178,12 +178,12 @@ mod tests {
     }
 
     #[test]
-    fn sample_bvox_bsvo() {
+    fn cube_grid_svo() {
         cube_grid_and_svo().unwrap();
     }
 
     #[test]
-    fn simple_test() {
+    fn tiny_grid_svo() {
         tiny_grid_and_svo().unwrap();
     }
 }
