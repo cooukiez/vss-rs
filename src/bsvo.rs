@@ -1,15 +1,16 @@
 use std::{fs::File, io, io::{BufReader, BufWriter, Read, Seek, SeekFrom, Write}, path::Path, ptr, slice};
-use serde_derive::{Deserialize, Serialize};
 use crate::svo::{DEFAULT_SVO_MAX_DEPTH, SVO};
 
 pub const BSVO_VERSION: u8 = 3;
 pub const NODE_SIZE: usize = size_of::<u32>();
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+// Todo: implement run length encoding for bsvo? is it worth it?
+#[derive(Copy, Clone, Debug)]
 pub struct BsvoHeader {
     version: u8,
     pub depth: u8,
     pub root_span: f32,
+    #[allow(dead_code)]
     pub run_length_encoded: bool,
 }
 

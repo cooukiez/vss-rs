@@ -77,7 +77,7 @@ pub fn test_bvox_append() -> Result<(), Box<dyn Error>> {
     Ok (())
 }
 
-pub fn test_normal_and_rle_read_write() -> Result<(), Box<dyn Error>> {
+pub fn test_bvox_compression() -> Result<(), Box<dyn Error>> {
     let chunk = gen_rand_vox_grid(CHUNK_SIZE as usize, 0.1);
     let chunk_data = vec![chunk];
 
@@ -215,42 +215,42 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_empty() {
+    fn gen_empty() {
         test_empty_bsvo_and_bvox().unwrap();
     }
 
     #[test]
-    fn test_append() {
+    fn bvox_append() {
         test_bvox_append().unwrap();
     }
 
     #[test]
-    fn test_random_svo() {
+    fn random_svo() {
         test_gen_random_svo().unwrap();
     }
 
     #[test]
-    fn test_bvox_rw() {
+    fn bvox_rw() {
         test_bvox_read_write().unwrap();
     }
 
     #[test]
-    fn test_bvox_normal_rle_rw() {
-        test_normal_and_rle_read_write().unwrap();
+    fn bvox_compression() {
+        test_bvox_compression().unwrap();
     }
 
     #[test]
-    fn test_bsvo_rw() {
+    fn bsvo_rw() {
         test_bsvo_read_write().unwrap();
     }
 
     #[test]
-    fn cube_grid_svo() {
+    fn cube() {
         cube_grid_and_svo().unwrap();
     }
 
     #[test]
-    fn tiny_grid_svo() {
+    fn tiny_grid_and_svo_for_testing() {
         tiny_grid_and_svo().unwrap();
     }
 }
