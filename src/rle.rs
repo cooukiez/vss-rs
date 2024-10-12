@@ -1,6 +1,6 @@
 use std::io;
 
-const RLE_MAX: u8 = u8::MAX - 1;
+pub const RLE_MAX: u8 = u8::MAX - 1;
 
 pub fn run_length_encode(data: &[u8]) -> Vec<u8> {
     let mut encoded = Vec::new();

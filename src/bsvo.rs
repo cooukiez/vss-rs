@@ -6,18 +6,34 @@ use std::{
 };
 use serde_derive::{Deserialize, Serialize};
 use std::slice::from_raw_parts;
-use crate::svo::SVO;
+use crate::svo::{DEFAULT_SVO_MAX_DEPTH, SVO};
 
 pub const BSVO_VERSION: u8 = 3;
 pub const NODE_SIZE: usize = size_of::<u32>();
 
-#[repr(C, align(4))]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct BsvoHeader {
     pub version: u8,
     pub depth: u8,
     pub root_span: f32,
     pub run_length_encoded: bool,
+}
+
+impl BsvoHeader {
+    pub fn new(depth: u8, root_span: f32, run_length_encoded: bool) -> BsvoHeader {
+        Self {
+            version: BSVO_VERSION,
+            depth,
+            root_span,
+            run_length_encoded,
+        }
+    }
+}
+
+impl Default for BsvoHeader {
+    fn default() -> Self {
+        Self::new(DEFAULT_SVO_MAX_DEPTH, 2u32.pow(DEFAULT_SVO_MAX_DEPTH as u32) as f32, false)
+    }
 }
 
 pub fn write_empty_bsvo(filename: &str, header: BsvoHeader) -> io::Result<()> {

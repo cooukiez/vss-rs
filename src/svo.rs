@@ -63,8 +63,8 @@ pub fn encode_node(child_mask: u8, first_child_index: u32) -> u32 {
 
 pub struct SVO {
     pub nodes: Vec<u32>,
-    pub root_span: f32,
     pub depth: u8,
+    pub root_span: f32,
 }
 
 impl SVO {
@@ -72,8 +72,8 @@ impl SVO {
         SVO {
             // insert root
             nodes: Vec::from([0]),
-            root_span: 2u32.pow(depth as u32) as f32,
             depth,
+            root_span: 2u32.pow(depth as u32) as f32,
         }
     }
 
@@ -194,6 +194,6 @@ impl SVO {
 
 impl Default for SVO {
     fn default() -> Self {
-        SVO::new(DEFAULT_SVO_MAX_DEPTH)
+        Self::new(DEFAULT_SVO_MAX_DEPTH)
     }
 }

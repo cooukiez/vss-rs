@@ -7,8 +7,10 @@ use std::{
 use serde_derive::{Deserialize, Serialize};
 use crate::rle::{run_length_decode, run_length_encode};
 
-const BVOX_VERSION: u8 = 2;
-const CHUNK_SEPARATOR: u8 = u8::MAX;
+pub const BVOX_VERSION: u8 = 2;
+pub const CHUNK_SEPARATOR: u8 = u8::MAX;
+pub const DEFAULT_CHUNK_RES: u32 = 256;
+pub const DEFAULT_CHUNK_SIZE: u32 = DEFAULT_CHUNK_RES * DEFAULT_CHUNK_RES * DEFAULT_CHUNK_RES;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct BvoxHeader {
@@ -17,6 +19,24 @@ pub struct BvoxHeader {
     chunk_size: u32,
     run_length_encoded: bool,
     morton_encoded: bool,
+}
+
+impl BvoxHeader {
+    pub fn new(chunk_res: u32, chunk_size: u32, run_length_encoded: bool, morton_encoded: bool) -> Self {
+        Self {
+            version: BVOX_VERSION,
+            chunk_res,
+            chunk_size,
+            run_length_encoded,
+            morton_encoded,
+        }
+    }
+}
+
+impl Default for BvoxHeader {
+    fn default() -> Self {
+        Self::new(DEFAULT_CHUNK_RES, DEFAULT_CHUNK_SIZE, false, false)
+    }
 }
 
 //
@@ -38,9 +58,11 @@ pub fn write_empty_bvox(filename: &str, header: BvoxHeader) -> io::Result<()> {
 pub fn write_bvox(
     filename: &str,
     chunk_data: &[Vec<u8>],
-    mut header: BvoxHeader,
+    header: BvoxHeader,
 ) -> io::Result<()> {
+    let mut header = header;
     header.version = BVOX_VERSION;
+
     let path = Path::new(filename);
     let mut writer = BufWriter::new(File::create(path)?);
 
