@@ -6,11 +6,15 @@ use rand::distributions::{Bernoulli, Distribution};
 use rand::thread_rng;
 use std::error::Error;
 
-mod bsvo;
-mod svo;
-mod vox;
-mod bvox;
-mod rle;
+pub mod bsvo;
+pub mod svo;
+pub mod vox;
+pub mod bvox;
+pub mod rle;
+
+//
+// testing modules
+//
 
 const CHUNK_RES: u32 = DEFAULT_CHUNK_RES;
 const CHUNK_SIZE: u32 = DEFAULT_CHUNK_SIZE;
