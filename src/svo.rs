@@ -16,7 +16,8 @@ pub trait Octant {
     fn child_mask(&self) -> u8;
     fn set_child_mask(&self, mask: u8) -> u32;
     fn child_count(&self) -> u32;
-    fn is_leaf(&self) -> bool;
+    fn leaf(&self) -> bool;
+    fn empty(&self) -> bool;
 }
 
 impl Octant for u32 {
@@ -54,8 +55,12 @@ impl Octant for u32 {
         (self >> CHILD_OFFSET).count_ones()
     }
 
-    fn is_leaf(&self) -> bool {
+    fn leaf(&self) -> bool {
         (self & 0b11111111_00000000_00000000_00000000) == 0 && (self & 0b00000000_11111111_11111111_11111111) != 0
+    }
+
+    fn empty(&self) -> bool {
+        *self == 0
     }
 }
 
@@ -197,7 +202,7 @@ impl SVO {
     }
 
     pub fn count_leaf_nodes(&self) -> u32 {
-        self.nodes.iter().filter(|&n| n.is_leaf()).count() as u32
+        self.nodes.iter().filter(|&n| n.leaf()).count() as u32
     }
 }
 

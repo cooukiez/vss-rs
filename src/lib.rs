@@ -2,6 +2,7 @@ use crate::bsvo::{read_bsvo, write_bsvo, write_empty_bsvo, BsvoHeader};
 use crate::bvox::{append_to_bvox, read_bvox, write_bvox, write_empty_bvox, BvoxHeader, DEFAULT_CHUNK_RES, DEFAULT_CHUNK_SIZE};
 use crate::svo::{DEFAULT_SVO_MAX_DEPTH, SVO};
 use crate::vox::{morton_decode_3d_grid, morton_encode_3d_grid, pos_to_index, DEFAULT_VOX_MAT};
+use glam::Vec3;
 use rand::distributions::{Bernoulli, Distribution};
 use rand::thread_rng;
 use std::error::Error;
@@ -214,6 +215,14 @@ pub fn tiny_grid_and_svo() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn test_svo_simplest() {
+    let mut svo = SVO::new(1);
+    svo.insert_node(Vec3::splat(0.0));
+
+    let bsvo_header = BsvoHeader::new(svo.depth, svo.root_span, false);
+    write_bsvo("output/simplest.bsvo", &svo, bsvo_header).unwrap();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -256,5 +265,10 @@ mod tests {
     #[test]
     fn tiny_grid_and_svo_for_testing() {
         tiny_grid_and_svo().unwrap();
+    }
+
+    #[test]
+    fn simplest() {
+        test_svo_simplest();
     }
 }
